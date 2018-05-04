@@ -1,6 +1,7 @@
 import gzip, struct
 import numpy as np
 
+
 def _read(image,label):
     minist_dir = 'data/'
     with gzip.open(minist_dir+label) as flbl:
