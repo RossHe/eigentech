@@ -3,27 +3,13 @@ import numpy as np
 import tensorflow as tf
 import scipy.misc
 
-x_train, y_train, x_test,y_test = get_data()
-x_train,x_test = x_train.reshape(-1,28,28,1), x_test.reshape(-1,28,28,1)
-
 def horizontalFlip(x):
     x = x[:,:,::-1,:]
     return x
-x_flip = horizontalFlip(x_train)
-y_flip = y_train
-x_train = np.vstack((x_train,x_flip))
-y_train = np.hstack((y_train,y_flip))
-mask = np.arange(len(x_train))
-np.random.shuffle(mask)
-x_train = x_train[mask]
-y_train = y_train[mask]
 
 def preProcess(x):
     x = x[:] / 255
     return x
-
-x_train = preProcess(x_train)
-x_test = preProcess(x_test)
 
 def dense_to_one_hot(labels_dense, num_classes):
   """Convert class labels from scalars to one-hot vectors."""
@@ -33,11 +19,24 @@ def dense_to_one_hot(labels_dense, num_classes):
   labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
   return labels_one_hot
 
+x_train, y_train, x_test,y_test = get_data()
+x_train,x_test = x_train.reshape(-1,28,28,1), x_test.reshape(-1,28,28,1)
+x_flip = horizontalFlip(x_train)
+y_flip = y_train
+x_train = np.vstack((x_train,x_flip))
+y_train = np.hstack((y_train,y_flip))
+mask = np.arange(len(x_train))
+np.random.shuffle(mask)
+x_train = x_train[mask]
+y_train = y_train[mask]
+x_train = preProcess(x_train)
+x_test = preProcess(x_test)
 y_train = dense_to_one_hot(y_train,10)
 y_test = dense_to_one_hot(y_test,10)
 
-x_val, y_val = x_train[55000:], y_train[55000:]
-x_train, y_train = x_train[:55000], y_train[:55000]
+val_size = 5000
+x_val, y_val = x_train[-val_size:], y_train[-val_size:]
+x_train, y_train = x_train[:-val_size], y_train[:-val_size]
 
 def weight_variable(shape):
     init = tf.truncated_normal(shape,stddev = 0.1)
@@ -87,7 +86,6 @@ sess.run(tf.global_variables_initializer())
 
 batch_size = 256
 for i in range(6001):
-#    mask = np.random.shuffle(range(len(x_train)))
     start = (i * batch_size) % x_train.shape[0]
     end = min(start + batch_size, x_train.shape[0])
     batch_x, batch_y = x_train[start:end], y_train[start:end]
@@ -105,3 +103,4 @@ test_acc = acc.eval(feed_dict = {x:x_test,y_:y_test,keep_prob:1.0})
 #acc2 = acc.eval(feed_dict = {x:x_test[len(x_test)//2:],y_:y_test[len(y_test)//2:],keep_prob:1.0})
 print('test loss : %f ,test acc: %f'%(loss,test_acc))
 sess.close()
+np.random.choice
